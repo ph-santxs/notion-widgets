@@ -1,51 +1,170 @@
-
 <style>
-  * { box-sizing: border-box; }
-  .wrap { padding: 14px 0; }
-  .grammar-box { background: var(--color-background-secondary); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; font-family: var(--font-mono); font-size: 13px; line-height: 2; }
-  .chain-display { background: var(--color-background-primary); border: 2px solid var(--color-border-secondary); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; min-height: 54px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .sym-t  { padding: 4px 10px; border-radius: 6px; background: var(--color-background-success); color: var(--color-text-success); font-family: var(--font-mono); font-size: 15px; font-weight: 500; border: 1.5px solid var(--color-border-success); }
-  .sym-nt { padding: 4px 10px; border-radius: 6px; background: var(--color-background-danger); color: var(--color-text-danger); font-family: var(--font-mono); font-size: 15px; font-weight: 500; border: 1.5px solid var(--color-border-danger); }
-  .rule-btn { padding: 8px 14px; border-radius: 8px; border: 1.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s; font-family: var(--font-mono); }
-  .rule-btn:hover { background: var(--color-background-info); border-color: var(--color-border-info); color: var(--color-text-info); }
-  .rule-btn:disabled { opacity: 0.4; cursor: default; }
-  .rules-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .status { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; min-height: 22px; }
-  .status.done { color: var(--color-text-success); font-weight: 500; }
-  .history { font-size: 12px; color: var(--color-text-secondary); font-family: var(--font-mono); line-height: 1.8; background: var(--color-background-secondary); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; max-height: 120px; overflow-y: auto; }
-  .reset-btn { padding: 8px 18px; border-radius: 8px; border: none; background: var(--color-text-secondary); color: var(--color-background-primary); font-size: 13px; cursor: pointer; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f1115;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+    color: #e6e6e6;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .card {
+    background: #1a1d24;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+  }
+
+  .title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #9aa4b2;
+  }
+
+  .grammar-box {
+    font-family: monospace;
+    line-height: 1.8;
+    font-size: 13px;
+  }
+
+  .chain-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 50px;
+    align-items: center;
+  }
+
+  .sym-t {
+    background: #1f3d2b;
+    color: #6ee7a2;
+    border: 1px solid #2ecc71;
+  }
+
+  .sym-nt {
+    background: #3b1f24;
+    color: #ff7a7a;
+    border: 1px solid #ff4d4d;
+  }
+
+  .sym-t, .sym-nt {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 15px;
+    transition: 0.2s;
+  }
+
+  .rules-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .rule-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #2a2f3a;
+    color: #e6e6e6;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 13px;
+  }
+
+  .rule-btn:hover {
+    background: #3a4150;
+    transform: translateY(-1px);
+  }
+
+  .rule-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .status {
+    font-size: 13px;
+    color: #9aa4b2;
+  }
+
+  .status.done {
+    color: #6ee7a2;
+    font-weight: 500;
+  }
+
+  .history {
+    font-family: monospace;
+    font-size: 12px;
+    max-height: 140px;
+    overflow-y: auto;
+    line-height: 1.7;
+  }
+
+  .reset-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #ff4d4d;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: 500;
+  }
+
+  .reset-btn:hover {
+    background: #ff2f2f;
+  }
 </style>
 
 <div class="wrap">
-  <div class="grammar-box">
-    <strong>Gramática:</strong>  V = {S, A}   Σ = {a, b}<br>
-    Regra 1: <span style="color:var(--color-text-danger)">S</span> → a<span style="color:var(--color-text-danger)">S</span> &nbsp;&nbsp; (coloca um "a" e mantém S)<br>
-    Regra 2: <span style="color:var(--color-text-danger)">S</span> → b<span style="color:var(--color-text-danger)">A</span> &nbsp;&nbsp; (coloca "b" e passa para A)<br>
-    Regra 3: <span style="color:var(--color-text-danger)">A</span> → b<span style="color:var(--color-text-danger)">A</span> &nbsp;&nbsp; (coloca outro "b" e mantém A)<br>
-    Regra 4: <span style="color:var(--color-text-danger)">A</span> → b &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (coloca "b" final e termina)
+
+  <div class="card grammar-box">
+    <div class="title">Gramática</div>
+    V = {S, A} &nbsp;&nbsp; Σ = {a, b}<br>
+    S → aS<br>
+    S → bA<br>
+    A → bA<br>
+    A → b
   </div>
 
-  <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Cadeia atual:</div>
-  <div class="chain-display" id="chain-display"></div>
-
-  <div class="status" id="status">Aplique uma regra ao primeiro não-terminal disponível.</div>
-
-  <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Regras disponíveis:</div>
-  <div class="rules-wrap" id="rules-wrap">
-    <button class="rule-btn" id="r1" onclick="apply(1)">Regra 1: S → aS</button>
-    <button class="rule-btn" id="r2" onclick="apply(2)">Regra 2: S → bA</button>
-    <button class="rule-btn" id="r3" onclick="apply(3)" disabled>Regra 3: A → bA</button>
-    <button class="rule-btn" id="r4" onclick="apply(4)" disabled>Regra 4: A → b</button>
+  <div class="card">
+    <div class="title">Cadeia atual</div>
+    <div class="chain-display" id="chain-display"></div>
   </div>
 
-  <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px">Histórico:</div>
-  <div class="history" id="history">S  ← início</div>
+  <div class="card status" id="status">
+    Aplique uma regra ao primeiro não-terminal disponível.
+  </div>
+
+  <div class="card">
+    <div class="title">Regras</div>
+    <div class="rules-wrap">
+      <button class="rule-btn" id="r1" onclick="apply(1)">S → aS</button>
+      <button class="rule-btn" id="r2" onclick="apply(2)">S → bA</button>
+      <button class="rule-btn" id="r3" onclick="apply(3)" disabled>A → bA</button>
+      <button class="rule-btn" id="r4" onclick="apply(4)" disabled>A → b</button>
+    </div>
+  </div>
+
+  <div class="card history" id="history">
+    S ← início
+  </div>
 
   <button class="reset-btn" onclick="reset()">↺ Recomeçar</button>
+
 </div>
 
 <script>
-// chain = array of {sym, isNT}
 let chain = [{sym:'S', isNT:true}];
 let done = false;
 
@@ -67,19 +186,22 @@ function render() {
   document.getElementById('r3').disabled = curNT !== 'A' || done;
   document.getElementById('r4').disabled = curNT !== 'A' || done;
 
+  const status = document.getElementById('status');
+
   if (!curNT) {
     done = true;
     const word = chain.map(x => x.sym).join('');
-    document.getElementById('status').textContent = `✅ Cadeia final: "${word}" — não há mais não-terminais!`;
-    document.getElementById('status').className = 'status done';
+    status.textContent = `✅ Cadeia final: "${word}"`;
+    status.className = 'card status done';
   } else {
-    document.getElementById('status').textContent = `Próximo não-terminal a substituir: "${curNT}" (em vermelho)`;
-    document.getElementById('status').className = 'status';
+    status.textContent = `Próximo: ${curNT}`;
+    status.className = 'card status';
   }
 }
 
 function apply(rule) {
   if (done) return;
+
   const idx = firstNT();
   if (idx < 0) return;
 
@@ -96,7 +218,7 @@ function apply(rule) {
 
   const word = chain.map(x => x.sym).join('');
   const hist = document.getElementById('history');
-  hist.innerHTML += `<br>${word}  ← regra ${rule}`;
+  hist.innerHTML += `<br>${word} ← regra ${rule}`;
   hist.scrollTop = hist.scrollHeight;
 
   render();
@@ -105,8 +227,7 @@ function apply(rule) {
 function reset() {
   chain = [{sym:'S', isNT:true}];
   done = false;
-  document.getElementById('history').innerHTML = 'S  ← início';
-  document.getElementById('status').className = 'status';
+  document.getElementById('history').innerHTML = 'S ← início';
   render();
 }
 
