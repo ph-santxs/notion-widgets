@@ -1,0 +1,114 @@
+
+<style>
+  * { box-sizing: border-box; }
+  .wrap { padding: 14px 0; }
+  .grammar-box { background: var(--color-background-secondary); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; font-family: var(--font-mono); font-size: 13px; line-height: 2; }
+  .chain-display { background: var(--color-background-primary); border: 2px solid var(--color-border-secondary); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; min-height: 54px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .sym-t  { padding: 4px 10px; border-radius: 6px; background: var(--color-background-success); color: var(--color-text-success); font-family: var(--font-mono); font-size: 15px; font-weight: 500; border: 1.5px solid var(--color-border-success); }
+  .sym-nt { padding: 4px 10px; border-radius: 6px; background: var(--color-background-danger); color: var(--color-text-danger); font-family: var(--font-mono); font-size: 15px; font-weight: 500; border: 1.5px solid var(--color-border-danger); }
+  .rule-btn { padding: 8px 14px; border-radius: 8px; border: 1.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s; font-family: var(--font-mono); }
+  .rule-btn:hover { background: var(--color-background-info); border-color: var(--color-border-info); color: var(--color-text-info); }
+  .rule-btn:disabled { opacity: 0.4; cursor: default; }
+  .rules-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .status { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; min-height: 22px; }
+  .status.done { color: var(--color-text-success); font-weight: 500; }
+  .history { font-size: 12px; color: var(--color-text-secondary); font-family: var(--font-mono); line-height: 1.8; background: var(--color-background-secondary); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; max-height: 120px; overflow-y: auto; }
+  .reset-btn { padding: 8px 18px; border-radius: 8px; border: none; background: var(--color-text-secondary); color: var(--color-background-primary); font-size: 13px; cursor: pointer; }
+</style>
+
+<div class="wrap">
+  <div class="grammar-box">
+    <strong>Gramática:</strong>  V = {S, A}   Σ = {a, b}<br>
+    Regra 1: <span style="color:var(--color-text-danger)">S</span> → a<span style="color:var(--color-text-danger)">S</span> &nbsp;&nbsp; (coloca um "a" e mantém S)<br>
+    Regra 2: <span style="color:var(--color-text-danger)">S</span> → b<span style="color:var(--color-text-danger)">A</span> &nbsp;&nbsp; (coloca "b" e passa para A)<br>
+    Regra 3: <span style="color:var(--color-text-danger)">A</span> → b<span style="color:var(--color-text-danger)">A</span> &nbsp;&nbsp; (coloca outro "b" e mantém A)<br>
+    Regra 4: <span style="color:var(--color-text-danger)">A</span> → b &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (coloca "b" final e termina)
+  </div>
+
+  <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Cadeia atual:</div>
+  <div class="chain-display" id="chain-display"></div>
+
+  <div class="status" id="status">Aplique uma regra ao primeiro não-terminal disponível.</div>
+
+  <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Regras disponíveis:</div>
+  <div class="rules-wrap" id="rules-wrap">
+    <button class="rule-btn" id="r1" onclick="apply(1)">Regra 1: S → aS</button>
+    <button class="rule-btn" id="r2" onclick="apply(2)">Regra 2: S → bA</button>
+    <button class="rule-btn" id="r3" onclick="apply(3)" disabled>Regra 3: A → bA</button>
+    <button class="rule-btn" id="r4" onclick="apply(4)" disabled>Regra 4: A → b</button>
+  </div>
+
+  <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px">Histórico:</div>
+  <div class="history" id="history">S  ← início</div>
+
+  <button class="reset-btn" onclick="reset()">↺ Recomeçar</button>
+</div>
+
+<script>
+// chain = array of {sym, isNT}
+let chain = [{sym:'S', isNT:true}];
+let done = false;
+
+function firstNT() {
+  return chain.findIndex(x => x.isNT);
+}
+
+function render() {
+  const display = document.getElementById('chain-display');
+  display.innerHTML = chain.map(x =>
+    `<span class="${x.isNT ? 'sym-nt' : 'sym-t'}">${x.sym}</span>`
+  ).join('');
+
+  const idx = firstNT();
+  const curNT = idx >= 0 ? chain[idx].sym : null;
+
+  document.getElementById('r1').disabled = curNT !== 'S' || done;
+  document.getElementById('r2').disabled = curNT !== 'S' || done;
+  document.getElementById('r3').disabled = curNT !== 'A' || done;
+  document.getElementById('r4').disabled = curNT !== 'A' || done;
+
+  if (!curNT) {
+    done = true;
+    const word = chain.map(x => x.sym).join('');
+    document.getElementById('status').textContent = `✅ Cadeia final: "${word}" — não há mais não-terminais!`;
+    document.getElementById('status').className = 'status done';
+  } else {
+    document.getElementById('status').textContent = `Próximo não-terminal a substituir: "${curNT}" (em vermelho)`;
+    document.getElementById('status').className = 'status';
+  }
+}
+
+function apply(rule) {
+  if (done) return;
+  const idx = firstNT();
+  if (idx < 0) return;
+
+  const cur = chain[idx].sym;
+  let replacement = [];
+
+  if (rule === 1 && cur === 'S') replacement = [{sym:'a',isNT:false},{sym:'S',isNT:true}];
+  else if (rule === 2 && cur === 'S') replacement = [{sym:'b',isNT:false},{sym:'A',isNT:true}];
+  else if (rule === 3 && cur === 'A') replacement = [{sym:'b',isNT:false},{sym:'A',isNT:true}];
+  else if (rule === 4 && cur === 'A') replacement = [{sym:'b',isNT:false}];
+  else return;
+
+  chain.splice(idx, 1, ...replacement);
+
+  const word = chain.map(x => x.sym).join('');
+  const hist = document.getElementById('history');
+  hist.innerHTML += `<br>${word}  ← regra ${rule}`;
+  hist.scrollTop = hist.scrollHeight;
+
+  render();
+}
+
+function reset() {
+  chain = [{sym:'S', isNT:true}];
+  done = false;
+  document.getElementById('history').innerHTML = 'S  ← início';
+  document.getElementById('status').className = 'status';
+  render();
+}
+
+render();
+</script>
