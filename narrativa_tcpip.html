@@ -1,0 +1,264 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f1115;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+    color: #e6e6e6;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  .card {
+    background: #1a1d24;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  /* progress */
+  .progress {
+    height: 6px;
+    background: #2a2f3a;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4da3ff, #6ee7ff);
+    width: 0%;
+    transition: 0.4s;
+  }
+
+  /* dots */
+  .dots {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #3a4150;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .dot.active {
+    background: #4da3ff;
+    transform: scale(1.2);
+  }
+
+  .dot.done {
+    background: #6ee7a2;
+  }
+
+  /* content */
+  .step-num {
+    font-size: 12px;
+    color: #9aa4b2;
+    margin-bottom: 6px;
+  }
+
+  .step-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  .step-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #cbd5e1;
+    margin-bottom: 16px;
+  }
+
+  .step-insight {
+    background: #1f2f45;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #7dd3fc;
+    margin-bottom: 14px;
+  }
+
+  .step-link {
+    font-size: 13px;
+    color: #9aa4b2;
+    font-style: italic;
+  }
+
+  /* nav */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #2a2f3a;
+    color: #e6e6e6;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .btn:hover {
+    background: #3a4150;
+  }
+
+  .btn.primary {
+    background: #4da3ff;
+    color: white;
+  }
+
+  .btn.primary:hover {
+    background: #3b8eea;
+  }
+
+  .btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* animation */
+  .fade {
+    animation: fade 0.3s ease;
+  }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="wrap">
+  <div class="card">
+
+    <div class="progress">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <div class="dots" id="dots"></div>
+
+    <div id="content" class="fade"></div>
+
+    <div class="nav">
+      <button class="btn" id="prev" onclick="go(-1)">← Anterior</button>
+      <button class="btn primary" id="next" onclick="go(1)">Próximo →</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const steps = [
+  {
+    num: "Passo 1 de 7 — O problema inicial",
+    title: "Você tem um computador. Como ele fala com outro?",
+    body: "Antes de qualquer coisa, precisamos entender o que é uma rede: um conjunto de dispositivos que conseguem se comunicar. Esses dispositivos são os hosts (seu PC, celular, servidor) e os dispositivos de conexão (roteadores, switches, modems). Sem isso, cada computador seria uma ilha isolada.",
+    insight: "Pergunta-chave: 'como conectar dispositivos diferentes, de fabricantes diferentes, espalhados pelo mundo?'",
+    link: "Isso justifica os tópicos: LAN, WAN, hosts, roteadores, switches, modems."
+  },
+  {
+    num: "Passo 2 de 7 — Escalando a conexão",
+    title: "Da sala até o mundo: LAN, WAN e internetwork",
+    body: "Primeiro conectamos dispositivos no mesmo prédio — isso é a LAN (Local Area Network), uma rede privada pequena com switch no centro. Mas como conectar prédios, cidades, países? Precisamos de uma WAN (Wide Area Network), operada por empresas de telecomunicação. Quando juntamos várias LANs e WANs, criamos uma internetwork. A Internet com 'I' maiúsculo é a maior internetwork do mundo.",
+    insight: "LAN → prédio/campus. WAN → entre cidades/países. LAN + WAN + LAN = Internet.",
+    link: "Agora surge o próximo problema: como os dados viajam por dentro dessa rede gigante?"
+  },
+  {
+    num: "Passo 3 de 7 — Como os dados viajam",
+    title: "Comutação: duas filosofias completamente diferentes",
+    body: "Surgem duas abordagens. Na comutação de circuitos (telefonia antiga), reserva-se um caminho exclusivo antes de enviar qualquer dado — como reservar uma estrada só pra você. Funciona bem, mas desperdiça banda quando ninguém está falando. Na comutação de pacotes (Internet), os dados são picados em pacotes independentes que viajam por qualquer caminho disponível e são remontados no destino.",
+    insight: "A Internet usa comutação de pacotes: mais eficiente, compartilhado, mas pacotes podem sofrer atrasos na fila dos roteadores.",
+    link: "Ok, os dados viajam em pacotes. Mas como dispositivos completamente diferentes se entendem?"
+  },
+  {
+    num: "Passo 4 de 7 — O problema da linguagem comum",
+    title: "Protocolos: as regras do jogo",
+    body: "Dois computadores só se comunicam se seguirem as mesmas regras: formato das mensagens, ordem das trocas, tratamento de erros. Isso se chama protocolo. Mas a comunicação é complexa demais para um protocolo único resolver tudo. A solução: dividir o problema em camadas, onde cada camada resolve uma parte e oferece um serviço para a camada de cima. É a modularidade — como o exemplo de Maria e Ana com as cartas cifradas.",
+    insight: "Cada camada é uma caixa preta: não importa como ela funciona por dentro, só importa o que ela entrega para cima.",
+    link: "Essa ideia de camadas se concretizou em dois modelos: TCP/IP e OSI."
+  },
+  {
+    num: "Passo 5 de 7 — Os dois modelos de camadas",
+    title: "TCP/IP (prático) vs. OSI (referência teórica)",
+    body: "O TCP/IP tem 5 camadas e é o que a Internet usa hoje. O OSI tem 7 camadas e foi criado pela ISO para ser um modelo de referência universal — surgiu porque cada fabricante tinha seu protocolo próprio e as redes não se comunicavam. O OSI nunca foi adotado na prática, mas é o modelo teórico que todos estudam. A diferença principal: o OSI separa Apresentação e Sessão em camadas próprias; o TCP/IP junta tudo em Aplicação.",
+    insight: "TCP/IP = o que existe. OSI = a régua para entender e explicar. Ambos resolvem o mesmo problema de ângulos diferentes.",
+    link: "Mas quem decide quais são as regras de cada protocolo?"
+  },
+  {
+    num: "Passo 6 de 7 — Quem escreve as regras",
+    title: "Padrões Internet: do rascunho ao RFC",
+    body: "Os protocolos da Internet não caem do céu. Alguém propõe um Internet draft (rascunho válido por 6 meses). Se aprovado, vira um RFC (Request for Comments) com número único — o RFC 791 define o IP, o RFC 793 define o TCP. Todo RFC é público e gratuito. Eles passam por níveis: Exigido, Recomendado, Opcional, Experimental.",
+    insight: "Curiosidade: o HTTP/1.1 está no RFC 2616. O TCP no RFC 793. Você pode ler as especificações originais de tudo que usamos hoje.",
+    link: "E quem coordena todo esse processo globalmente?"
+  },
+  {
+    num: "Passo 7 de 7 — Quem governa a Internet",
+    title: "Administração: ISOC, IETF, ICANN e os outros",
+    body: "A Internet não tem um dono, mas tem organizações que a coordenam. ISOC: apoia o processo de criação de padrões. IAB: consultoria técnica. IETF: o fórum que identifica problemas e propõe soluções — de onde saem os RFCs técnicos. IRTF: pesquisa de longo prazo. ICANN: gerencia nomes de domínio e endereços IP. NIC: distribui informações sobre TCP/IP (o NIC.br cuida do .br).",
+    insight: "Você vê agora como tudo se conecta? A IETF resolve os problemas → escreve RFCs → que definem os protocolos → que rodam sobre a arquitetura TCP/IP → que transporta pacotes → pelas LANs e WANs → que formam a Internet.",
+    link: "Essa é a história completa da aula 2."
+  }
+]; // mantém seu array original aqui
+
+let cur = 0;
+
+function render() {
+  const s = steps[cur];
+
+  const content = document.getElementById('content');
+  content.classList.remove('fade');
+  void content.offsetWidth;
+  content.classList.add('fade');
+
+  content.innerHTML = `
+    <div class="step-num">${s.num}</div>
+    <div class="step-title">${s.title}</div>
+    <div class="step-body">${s.body}</div>
+    <div class="step-insight">${s.insight}</div>
+    <div class="step-link">${s.link}</div>
+  `;
+
+  document.getElementById('prev').disabled = cur === 0;
+  document.getElementById('next').disabled = cur === steps.length - 1;
+
+  // dots
+  document.getElementById('dots').innerHTML = steps.map((_, i) =>
+    `<div class="dot ${i===cur?'active':i<cur?'done':''}" onclick="jump(${i})"></div>`
+  ).join('');
+
+  // progress
+  const progress = ((cur + 1) / steps.length) * 100;
+  document.getElementById('progress').style.width = progress + '%';
+}
+
+function go(d) {
+  cur = Math.max(0, Math.min(steps.length - 1, cur + d));
+  render();
+}
+
+function jump(i) {
+  cur = i;
+  render();
+}
+
+render();
+</script>
