@@ -1,0 +1,88 @@
+
+<style>
+.pkt { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:6px; font-size:13px; font-weight:500; border:0.5px solid var(--color-border-secondary); transition:all .3s; }
+.pkt-sent { background:var(--color-background-info); color:var(--color-text-info); }
+.pkt-window { background:var(--color-background-warning); color:var(--color-text-warning); border:2px solid var(--color-border-warning); }
+.pkt-free { background:var(--color-background-secondary); color:var(--color-text-secondary); }
+.pkt-acked { background:var(--color-background-success); color:var(--color-text-success); }
+#log { font-size:12px; color:var(--color-text-secondary); min-height:36px; margin-top:8px; }
+</style>
+
+<h2 class="sr-only">Simulação interativa da janela deslizante com tamanho 4</h2>
+
+<div style="margin-bottom:12px">
+  <span style="font-size:13px;color:var(--color-text-secondary)">Janela de tamanho </span>
+  <strong style="font-size:14px">4</strong>
+  <span style="font-size:13px;color:var(--color-text-secondary)"> — pacotes 0 a 15</span>
+</div>
+
+<div id="pkts" style="display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden;margin-bottom:16px"></div>
+
+<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+  <button onclick="sendPkt()" id="btn-send">Enviar próximo ↗</button>
+  <button onclick="ackPkt()"  id="btn-ack">Confirmar (ACK) ↗</button>
+  <button onclick="reset()">Reiniciar</button>
+</div>
+
+<div style="display:flex;gap:16px;font-size:12px;color:var(--color-text-secondary);flex-wrap:wrap">
+  <span><span class="pkt pkt-acked" style="width:18px;height:18px;display:inline-flex;border-radius:3px"></span> Confirmado</span>
+  <span><span class="pkt pkt-sent"  style="width:18px;height:18px;display:inline-flex;border-radius:3px"></span> Enviado (aguardando ACK)</span>
+  <span><span class="pkt pkt-window" style="width:18px;height:18px;display:inline-flex;border-radius:3px"></span> Na janela (pode enviar)</span>
+  <span><span class="pkt pkt-free"  style="width:18px;height:18px;display:inline-flex;border-radius:3px"></span> Fora da janela</span>
+</div>
+
+<div id="log">Clique "Enviar próximo" para começar.</div>
+
+<script>
+const N=16, W=4;
+let state=[], winStart=0, nextSend=0, nextAck=0;
+
+function reset(){
+  winStart=0; nextSend=0; nextAck=0;
+  state=Array(N).fill('free');
+  render();
+  document.getElementById('log').textContent='Reiniciado. Janela começa no pacote 0.';
+}
+
+function render(){
+  const c=document.getElementById('pkts');
+  c.innerHTML='';
+  for(let i=0;i<N;i++){
+    const d=document.createElement('div');
+    d.className='pkt';
+    d.textContent=i;
+    const inWin=i>=winStart && i<winStart+W;
+    if(state[i]==='acked') d.classList.add('pkt-acked');
+    else if(state[i]==='sent') d.classList.add('pkt-sent');
+    else if(inWin) d.classList.add('pkt-window');
+    else d.classList.add('pkt-free');
+    c.appendChild(d);
+  }
+  const full=nextSend>=winStart+W;
+  document.getElementById('btn-send').disabled=full||(nextSend>=N);
+  document.getElementById('btn-ack').disabled=nextAck>=nextSend;
+}
+
+function sendPkt(){
+  if(nextSend>=winStart+W||nextSend>=N) return;
+  state[nextSend]='sent';
+  const log=`Pacote ${nextSend} enviado. Janela: [${winStart}–${winStart+W-1}].${nextSend===winStart+W-1?' Janela cheia!':''}`;
+  nextSend++;
+  render();
+  document.getElementById('log').textContent=log;
+}
+
+function ackPkt(){
+  if(nextAck>=nextSend) return;
+  const p=nextAck;
+  state[p]='acked';
+  nextAck++;
+  const oldWin=winStart;
+  while(winStart<N && state[winStart]==='acked') winStart++;
+  const slid=winStart-oldWin;
+  render();
+  document.getElementById('log').textContent=`ACK do pacote ${p} recebido.${slid>0?` Janela deslizou ${slid} posição(ões) → agora [${winStart}–${Math.min(winStart+W-1,N-1)}].`:' Janela ainda aguarda ACKs anteriores.'}`;
+}
+
+reset();
+</script>
